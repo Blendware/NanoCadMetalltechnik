@@ -26,7 +26,7 @@ using Multicad.CustomObjectBase;
 
 namespace Multicad.Samples
 {
-  [CustomEntity(typeof(TextInBox), "1C925FA1-842B-49CD-924F-4ABF9717DB62", "TextInBox", "TextInBox Sample Entity")]
+    [CustomEntity(typeof(TextInBox), "1C925FA1-842B-49CD-924F-4ABF9717DB62", "TextInBox", "TextInBox Sample Entity")]
 	[Serializable]
 	public class TextInBox : McCustomBase
 	{
@@ -54,7 +54,7 @@ namespace Multicad.Samples
 		public override void OnDraw(GeometryBuilder dc)
 		{
 			dc.Clear();
-      dc.Color = McDbEntity.ByObject;//color will be taken from object properties and object will be redrawn after color change
+            dc.Color = McDbEntity.ByObject;//color will be taken from object properties and object will be redrawn after color change
 			dc.DrawPolyline(new Point3d[] { _pnt, new Point3d(_pnt.X, _pnt2.Y, 0), _pnt2, new Point3d(_pnt2.X, _pnt.Y, 0), _pnt});
 			dc.TextHeight = 2.5 * DbEntity.Scale;	//Use annotation scale
 			dc.Color = Color.Blue;//Draw text in blue

@@ -71,9 +71,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestCommands.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="HelloWorld.cs" />
-    <Compile Include="Metalltechick.cs" />
+    <Compile Include="BBox.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TextInBox.cs" />
     <Compile Include="TextInBox_Form.cs">

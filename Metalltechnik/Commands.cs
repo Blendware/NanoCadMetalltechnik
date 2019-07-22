@@ -36,10 +36,11 @@ namespace Multicad.Samples
 			obj.DbEntity.Color = Color.Red;
 			obj.PlaceObject();
 		}
-        [CommandMethod("Metalltechnick", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
-        static public void Metalltechick()
+        [CommandMethod("BBox", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void BBox()
         {
-            Metalltechick obj = new Metalltechick();
+            BBox obj = new BBox();
+            obj.PlaceObject();
         }
     }
 }
