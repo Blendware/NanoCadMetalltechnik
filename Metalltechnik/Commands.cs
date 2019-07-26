@@ -42,5 +42,11 @@ namespace Multicad.Samples
             BBox obj = new BBox();
             obj.PlaceObject();
         }
+        [CommandMethod("NBox", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void Box()
+        {
+            Box obj = new Box();
+            obj.PlaceObject();
+        }
     }
 }
