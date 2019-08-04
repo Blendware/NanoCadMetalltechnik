@@ -1,13 +1,5 @@
 ﻿//
-// Copyright (C) 2012, ZAO Nanosoft.  All rights reserved.
-//
-// This software, all its documentation and related materials (the Software) 
-// is owned by ZAO Nanosoft. The Software can be used to develop any software in accordance 
-// with the terms of ZAO Nanosoft's "nanoCAD Developer Community Program Agreement".
-//
-// The Software is protected by copyright laws and relevant international treaty provisions.
-//
-// By use of the Software you acknowledge and accept the above terms.
+// Copyright (C) 2019, Pescoller Tobias.  All rights reserved.
 //
 
 using System;
@@ -21,7 +13,7 @@ using Multicad.CustomObjectBase;
 
 namespace Metallwork
 {
-    [CustomEntity(typeof(Box), "6de33a9e-a784-11e9-a2a3-2a2ae2dbcce5", "Box", "Box Entity")]
+    [CustomEntity(typeof(Box), "6de33a9e-a784-11e9-a2a3-2a2ae2dbcce5", "Box", "Box")]
     [Serializable]
     internal class Box : McCustomBase
     {
