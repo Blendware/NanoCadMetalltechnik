@@ -1,28 +1,9 @@
 ﻿//
-// Copyright (C) 2012, ZAO Nanosoft.  All rights reserved.
-//
-// This software, all its documentation and related materials (the Software) 
-// is owned by ZAO Nanosoft. The Software can be used to develop any software in accordance 
-// with the terms of ZAO Nanosoft's "nanoCAD Developer Community Program Agreement".
-//
-// The Software is protected by copyright laws and relevant international treaty provisions.
-//
-// By use of the Software you acknowledge and accept the above terms.
+// Copyright (C) 2019, Pescoller Tobias.  All rights reserved.
 //
 
-using System;
 using System.Drawing;
-using System.Windows.Forms;
-using System.Collections.Generic;
-using System.ComponentModel;
-using Multicad;
-using Multicad.AplicationServices;
 using Multicad.Runtime;
-using Multicad.DatabaseServices;
-using Multicad.DataServices;
-using Multicad.Geometry;
-using Multicad.CustomObjectBase;
-
 using Metallwork;
 
 namespace Multicad.Samples
@@ -40,6 +21,12 @@ namespace Multicad.Samples
         static public void BBox()
         {
             BBox obj = new BBox();
+            obj.PlaceObject();
+        }
+        [CommandMethod("BLine", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void BLine()
+        {
+            BLine obj = new BLine();
             obj.PlaceObject();
         }
         [CommandMethod("NBox", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
