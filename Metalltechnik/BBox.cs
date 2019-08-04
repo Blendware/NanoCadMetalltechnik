@@ -283,12 +283,12 @@ namespace Metallwork
         public BendingShape(Point3d firstPoint, Point3d secondPoint, double Height, double overlap)
         {
             _shape = new Point3d[] {
-                 new Point3d(firstPoint.X, firstPoint.Y - overlap, 0),
+                 new Point3d(firstPoint.X, firstPoint.Y - overlap-0.5, 0),
                  //new Point3d(firstPoint.X, firstPoint.Y, 0),
                  new Point3d(firstPoint.X, firstPoint.Y + Height - overlap, 0),
                  new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y + Height - overlap, 0),
                  //new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y, 0),
-                 new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y - overlap, 0)
+                 new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y - overlap-0.5, 0)
              };
             Angle = GetAngle(firstPoint, secondPoint);
             Rotate(firstPoint);

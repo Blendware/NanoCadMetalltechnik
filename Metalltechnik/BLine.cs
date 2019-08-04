@@ -52,12 +52,30 @@ namespace Metallwork
             }
             else V = V_true;
 
-            Polyline3d offset = poly.GetTrimmedOffset(-Thickness)[0];
+            Polyline3d polyround = new Polyline3d(poly);
+            for (int i = 2; i < polyround.Vertices.Count; i+=2)
+            {
+                double angle1 = Math.Atan2(polyround.Vertices[i - 2].Point.X - polyround.Vertices[i - 1].Point.X, polyround.Vertices[i - 2].Point.Y - polyround.Vertices[i - 1].Point.Y);
+                double angle2 = Math.Atan2(polyround.Vertices[i - 1].Point.X - polyround.Vertices[i].Point.X, polyround.Vertices[i - 1].Point.Y - polyround.Vertices[i].Point.Y);
 
-            dc.DrawPolyline(poly);
+                angle1 *= 180 / Math.PI;
+                angle2 *= 180 / Math.PI;
+                double anglesum = 180 - angle1 + angle2;
+
+                double radius;
+                if (anglesum < 180)
+                    radius = V * 0.16;
+                else
+                    radius = V * 0.16 + Thickness;
+
+                polyround.Vertices.MakeFilletAtVertex(i - 1, radius);
+            }
+            Polyline3d offset = polyround.GetTrimmedOffset(-Thickness)[0];
+
+            dc.DrawPolyline(polyround);
             dc.DrawPolyline(offset);
-            dc.DrawLine(poly.Points.FirstPoint, offset.Points.FirstPoint);
-            dc.DrawLine(poly.Points.LastPoint, offset.Points.LastPoint);
+            dc.DrawLine(polyround.Points.FirstPoint, offset.Points.FirstPoint);
+            dc.DrawLine(polyround.Points.LastPoint, offset.Points.LastPoint);
         }
         public static Point3d PolarPoint(Point3d point1, Point3d point2, Point3d point3, double radius)
         {
@@ -107,23 +125,6 @@ namespace Metallwork
             DbEntity.Erase();
 
             polyVertecies.RemoveVertexAt(uint.Parse((polyVertecies.Count - 1).ToString()));
-            for (int i = 2; i < polyVertecies.Count-1; i++)
-            {
-                double angle1 = Math.Atan2(polyVertecies[i - 2].Point.X - polyVertecies[i - 1].Point.X, polyVertecies[i - 2].Point.Y - polyVertecies[i - 1].Point.Y);
-                double angle2 = Math.Atan2(polyVertecies[i - 1].Point.X - polyVertecies[i].Point.X, polyVertecies[i - 1].Point.Y - polyVertecies[i].Point.Y);
-
-                angle1 *= 180 / Math.PI;
-                angle2 *= 180 / Math.PI;
-                double anglesum = 180 - angle1 + angle2;
-
-                double radius;
-                if (anglesum < 180)
-                    radius = V * 0.16;
-                else
-                    radius = V * 0.16 + Thickness;
-
-                poly.Vertices.MakeFilletAtVertex(i-1, radius);
-            }
             polyVertecies.RemoveVertexAt(uint.Parse((polyVertecies.Count - 1).ToString()));
             DbEntity.AddToCurrentDocument();
 

@@ -73,7 +73,6 @@
   <ItemGroup>
     <Compile Include="BLine.cs" />
     <Compile Include="Box.cs" />
-    <Compile Include="Class1.cs" />
     <Compile Include="TestCommands.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="HelloWorld.cs" />
