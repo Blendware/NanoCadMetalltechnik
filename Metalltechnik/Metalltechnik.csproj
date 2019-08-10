@@ -73,12 +73,12 @@
   <ItemGroup>
     <Compile Include="BLine.cs" />
     <Compile Include="Box.cs" />
-    <Compile Include="TestCommands.cs" />
+    <Compile Include="Referece code\TestCommands.cs" />
     <Compile Include="Commands.cs" />
-    <Compile Include="HelloWorld.cs" />
+    <Compile Include="Referece code\HelloWorld.cs" />
     <Compile Include="BBox.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TextInBox.cs" />
+    <Compile Include="Referece code\TextInBox.cs" />
     <Compile Include="TextInBox_Form.cs">
       <SubType>Form</SubType>
     </Compile>

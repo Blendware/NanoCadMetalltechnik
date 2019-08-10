@@ -68,7 +68,7 @@ namespace Metallwork
                 DbEntity.Update();
             };
 
-            res = jig.GetPoint("Select second point:");
+            res = jig.GetPoint("Select second point:", res.Point);
             if (res.Result != InputResult.ResultCode.Normal)
             {
                 DbEntity.Erase();
