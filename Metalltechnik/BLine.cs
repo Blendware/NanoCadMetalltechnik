@@ -38,6 +38,7 @@ namespace Metallwork
         public int V_true { get; set; } = 0;
 
         private int V = 16;
+        private Point3d _textPoint = new Point3d(0, 0, 0);
 
         public override void OnDraw(GeometryBuilder dc)
         {
@@ -47,23 +48,25 @@ namespace Metallwork
             if (V_true == 0)
             {
                 if (Thickness < 3) V = 16;
-                else if (Thickness < 4) V = 20;
+                else if (Thickness == 3) V = 20;
+                else if (Thickness == 4) V = 35;
                 else if (Thickness > 4) V = 50;
             }
             else V = V_true;
 
             Polyline3d polyround = new Polyline3d(poly);
-            for (int i = 2; i < polyround.Vertices.Count; i+=2)
+
+            for (int i = 2; i < polyround.Vertices.Count; i++)
             {
                 double angle1 = Math.Atan2(polyround.Vertices[i - 2].Point.X - polyround.Vertices[i - 1].Point.X, polyround.Vertices[i - 2].Point.Y - polyround.Vertices[i - 1].Point.Y);
                 double angle2 = Math.Atan2(polyround.Vertices[i - 1].Point.X - polyround.Vertices[i].Point.X, polyround.Vertices[i - 1].Point.Y - polyround.Vertices[i].Point.Y);
 
-                angle1 *= 180 / Math.PI;
-                angle2 *= 180 / Math.PI;
-                double anglesum = 180 - angle1 + angle2;
+                //if (angle1 < 0) angle1 *= -1;
+                //if (angle2 < 0) angle2 *= -1;
+                double anglesum = Math.Atan((angle2 - angle1) / (1 + angle2 * angle1));//angle1 + angle2
 
                 double radius;
-                if (anglesum < 180)
+                if (anglesum < 0)
                     radius = V * 0.16;
                 else
                     radius = V * 0.16 + Thickness;
@@ -76,6 +79,13 @@ namespace Metallwork
             dc.DrawPolyline(offset);
             dc.DrawLine(polyround.Points.FirstPoint, offset.Points.FirstPoint);
             dc.DrawLine(polyround.Points.LastPoint, offset.Points.LastPoint);
+            Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness / 2)[0];
+            dc.TextHeight = 2.5 * DbEntity.Scale;   //Use annotation scale
+            dc.DrawMText(_textPoint, Vector3d.XAxis, Math.Round(middlePoly.Length,1).ToString(), HorizTextAlign.Center, VertTextAlign.Center);
+            dc.StrLineType = "Center";
+            dc.Color = Color.Yellow;
+            dc.LinetypeScale = DbEntity.LinetypeScale*0.3;
+            dc.DrawPolyline(middlePoly);
         }
         public static Point3d PolarPoint(Point3d point1, Point3d point2, Point3d point3, double radius)
         {
@@ -97,6 +107,7 @@ namespace Metallwork
             poly = new Polyline3d();
             poly.Vertices.AddVertex(res.Point);
             poly.Vertices.AddVertex(res.Point);
+            _textPoint = new Point3d(res.Point.X, res.Point.Y - 5 - Thickness, 0);
             Polyline3d.VertexDataOfPolyline polyVertecies = poly.Vertices;
             
             //_points.Add(res.Point);
@@ -116,7 +127,7 @@ namespace Metallwork
             };
             while (res.Result == InputResult.ResultCode.Normal)
             {
-                res = jig.GetPoint("Select next point(" + polyVertecies.Count + "):");
+                res = jig.GetPoint("Select next point(" + polyVertecies.Count + "):", res.Point);
                 //_points.Add(res.Point);
                 poly.Vertices.AddVertex(res.Point);
 
@@ -133,28 +144,30 @@ namespace Metallwork
         public override void OnTransform(Matrix3d tfm)
         {
             if (!TryModify()) return;
-            foreach (Point3d item in _points)
-            {
-                item.TransformBy(tfm);
-            }
+
+            _textPoint.TransformBy(tfm);
+            poly.TransformBy(tfm);
         }
         public override List<Point3d> OnGetGripPoints()
         {
-            return _points;
+            List<Point3d> arr = new List<Point3d>();
+            arr.Add(_textPoint);
+            for (int i = 0; i < poly.Vertices.Count; i++)
+            {
+                arr.Add(poly.Points[i]);
+            }
+            return arr;
         }
         public override void OnMoveGripPoints(List<int> indexes, Vector3d offset, bool isStretch)
         {
             if (!TryModify()) return;
-            if (indexes.Count >= 2)
+            if (indexes[0] == 0)
             {
-                for (int i = 0; i < _points.Count; i++)
-                {
-                    _points[i] += offset;
-                }
+                _textPoint += offset;
             }
-            else if (indexes.Count == 1)
+            else if (indexes.Count == 1 && indexes[0] > 0)
             {
-                _points[indexes[0]] += offset;
+                poly.Points[indexes[0]-1] += offset;
             }
         }
     }
