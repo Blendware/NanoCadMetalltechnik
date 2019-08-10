@@ -12,7 +12,9 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+
 nApp.ini
+/Metalltechnik/Referece code
 
 # Build results
 [Dd]ebug/
