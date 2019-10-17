@@ -36,6 +36,9 @@ namespace Metallwork
         [DisplayName("Manual V")]
         [Category("Parameter")]
         public int V_true { get; set; } = 0;
+        [DisplayName("K-factor")]
+        [Category("Parameter")]
+        public double k_factor { get; set; } = 0.5;
 
         private int V = 16;
         private Point3d _textPoint = new Point3d(0, 0, 0);
@@ -70,6 +73,8 @@ namespace Metallwork
                     radius = V * 0.16;
                 else
                     radius = V * 0.16 + Thickness;
+                if (Thickness < 0) radius += Thickness * -1;
+
 
                 polyround.Vertices.MakeFilletAtVertex(i - 1, radius);
             }
@@ -79,7 +84,7 @@ namespace Metallwork
             dc.DrawPolyline(offset);
             dc.DrawLine(polyround.Points.FirstPoint, offset.Points.FirstPoint);
             dc.DrawLine(polyround.Points.LastPoint, offset.Points.LastPoint);
-            Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness / 2)[0];
+            Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness * k_factor)[0];
             dc.TextHeight = 2.5 * DbEntity.Scale;   //Use annotation scale
             dc.DrawMText(_textPoint, Vector3d.XAxis, Math.Round(middlePoly.Length,1).ToString(), HorizTextAlign.Center, VertTextAlign.Center);
             dc.StrLineType = "Center";
