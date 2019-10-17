@@ -49,6 +49,9 @@ namespace Metallwork
                 _Height = value;
             }
         }
+        [DisplayName("Gap")]
+        [Category("Parameter")]
+        public double Gap { get; set; } = 0.2;
         public override void OnDraw(GeometryBuilder dc)
         {
             dc.Clear();
@@ -56,36 +59,28 @@ namespace Metallwork
             //dc.DrawPolyline(new Point3d[] { _pnt, _pnt1, _pnt2, _pnt3, _pnt });
             //dc.DrawPolyline(poly.GetTrimmedOffset(Height)[0]);
 
-            BendingShape shape1 = new BendingShape(_pnt, _pnt1, Height, Thickness);
-            BendingShape shape2 = new BendingShape(_pnt1, _pnt2, Height);
-            BendingShape shape3 = new BendingShape(_pnt2, _pnt3, Height, Thickness);
-            BendingShape shape4 = new BendingShape(_pnt3, _pnt, Height);
+            BendingShape shape1 = new BendingShape(_pnt, _pnt1, Height, Thickness, Gap);
+            BendingShape shape2 = new BendingShape(_pnt1, _pnt2, Height, Thickness);
+            BendingShape shape3 = new BendingShape(_pnt2, _pnt3, Height, Thickness, Gap);
+            BendingShape shape4 = new BendingShape(_pnt3, _pnt, Height, Thickness);
 
-            Polyline3d poly1 = new Polyline3d(new List<Point3d> (shape1.Shape));
-            Polyline3d poly2 = new Polyline3d(new List<Point3d> (shape2.Shape));
-            Polyline3d poly3 = new Polyline3d(new List<Point3d> (shape3.Shape));
-            Polyline3d poly4 = new Polyline3d(new List<Point3d> (shape4.Shape));
+            Polyline3d poly = new Polyline3d(new List<Point3d> (shape1.Shape));
+            poly.AddPoliline(new Polyline3d(new List<Point3d>(shape2.Shape)));
+            poly.AddPoliline(new Polyline3d(new List<Point3d>(shape3.Shape)));
+            poly.AddPoliline(new Polyline3d(new List<Point3d>(shape4.Shape)));
+            poly.SetClosed(true);
 
             //CircArc3d test = new CircArc3d(_pnt1, new Vector3d(), new Vector3d(), 0.25, ((180 + _pnt.AngleTo(_pnt1)) * Math.PI / 180), (_pnt.AngleTo(_pnt1) * Math.PI / 180));
             //dc.DrawArc(test);
 
             //dc.DrawArc(_pnt1, 0.25, ((180+_pnt1.AngleTo(_pnt2)) * Math.PI/180), (_pnt1.AngleTo(_pnt2) * Math.PI/180));
 
-            Polyline3d.VertexDataOfPolyline polyVertecies1 = poly1.Vertices;
-            Polyline3d.VertexDataOfPolyline polyVertecies2 = poly2.Vertices;
-            Polyline3d.VertexDataOfPolyline polyVertecies3 = poly3.Vertices;
-            Polyline3d.VertexDataOfPolyline polyVertecies4 = poly4.Vertices;
-            for (int i = 0; i < polyVertecies1.Count; i+=2)
+            Polyline3d.VertexDataOfPolyline polyVertecies = poly.Vertices;
+            for (int i = 0; i < polyVertecies.Count; i++)
             {
-                polyVertecies1.MakeFilletAtVertex(i+1, Radius);
-                polyVertecies2.MakeFilletAtVertex(i+1, Radius);
-                polyVertecies3.MakeFilletAtVertex(i+1, Radius);
-                polyVertecies4.MakeFilletAtVertex(i+1, Radius);
+                polyVertecies.MakeFilletAtVertex(i+1, Radius);
             }
-            dc.DrawPolyline(poly1);
-            dc.DrawPolyline(poly2);
-            dc.DrawPolyline(poly3);
-            dc.DrawPolyline(poly4);
+            dc.DrawPolyline(poly);
         }
         public Point3d PerpendicularPoint(Point3d point1, Point3d point2, bool invert1 = false, bool invert2 = false)
         {
@@ -252,6 +247,14 @@ namespace Metallwork
 
             return rotetedPoint;
         }
+        public static Polyline3d Rotate(this Polyline3d polyline, Point3d center, double angle)
+        {
+            for (int i = 0; i <= polyline.Points.Count; i++)
+            {
+                polyline.Points[i] = polyline.Points[i].Rotate(center*-1, angle);
+            }
+            return polyline;
+        }
         public static Point3d[] Rotate(this Point3d[] shape, double angle)
         {
             Point3d[] newShape = shape;
@@ -269,26 +272,29 @@ namespace Metallwork
         private Point3d[] _shape;
         public Point3d[] Shape { get { return _shape; } }
         public double Angle { get; }
-        public BendingShape(Point3d firstPoint, Point3d secondPoint, double Height)
+        public BendingShape(Point3d firstPoint, Point3d secondPoint, double Height, double Thickness)
         {
             _shape = new Point3d[] {
-                 new Point3d(firstPoint.X, firstPoint.Y, 0),
-                 new Point3d(firstPoint.X, firstPoint.Y + Height, 0),
-                 new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y + Height, 0),
-                 new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y, 0)
+                new Point3d(firstPoint.X-Thickness, firstPoint.Y, 0),
+                new Point3d(firstPoint.X-Thickness, firstPoint.Y + Height, 0),
+                new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint)+Thickness, firstPoint.Y + Height, 0),
+                new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint)+Thickness, firstPoint.Y, 0)
              };
             Angle = GetAngle(firstPoint, secondPoint);
             Rotate(firstPoint);
         }
-        public BendingShape(Point3d firstPoint, Point3d secondPoint, double Height, double overlap)
+        public BendingShape(Point3d firstPoint, Point3d secondPoint, double Height, double overlap, double Gap)
         {
             _shape = new Point3d[] {
-                 new Point3d(firstPoint.X, firstPoint.Y - overlap-0.5, 0),
-                 //new Point3d(firstPoint.X, firstPoint.Y, 0),
-                 new Point3d(firstPoint.X, firstPoint.Y + Height - overlap, 0),
-                 new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y + Height - overlap, 0),
-                 //new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y, 0),
-                 new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y - overlap-0.5, 0)
+                //new Point3d(firstPoint.X, firstPoint.Y+overlap, 0),
+                //new Point3d(firstPoint.X, firstPoint.Y -0.5, 0),
+                new Point3d(firstPoint.X+Gap, firstPoint.Y -0.5, 0),
+                new Point3d(firstPoint.X+Gap, firstPoint.Y + Height , 0),
+
+                new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint)-Gap, firstPoint.Y + Height , 0),
+                new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint)-Gap, firstPoint.Y -0.5, 0),
+                //new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y -0.5, 0),
+                //new Point3d(firstPoint.X + firstPoint.DistanceTo(secondPoint), firstPoint.Y+overlap, 0)
              };
             Angle = GetAngle(firstPoint, secondPoint);
             Rotate(firstPoint);
