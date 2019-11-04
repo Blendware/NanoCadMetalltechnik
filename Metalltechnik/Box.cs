@@ -1,8 +1,4 @@
-﻿//
-// Copyright (C) 2019, Pescoller Tobias.  All rights reserved.
-//
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Multicad;
