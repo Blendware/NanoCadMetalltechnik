@@ -1,22 +1,14 @@
-﻿//
-// Copyright (C) 2019, Pescoller Tobias.  All rights reserved.
-//
-
-using System.Drawing;
+﻿using System.Drawing;
 using Multicad.Runtime;
 using Metallwork;
+using Multicad.DatabaseServices;
+using System.Windows.Forms;
+using Multicad.DatabaseServices.StandardObjects;
 
 namespace Multicad.Samples
 {
 	public class Commands
 	{
-		[CommandMethod("TextInBox", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
-		static public void TextInBoxCmd()
-		{
-			TextInBox obj = new TextInBox();
-			obj.DbEntity.Color = Color.Red;
-			obj.PlaceObject();
-		}
         [CommandMethod("BBox", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
         static public void BBox()
         {
@@ -33,6 +25,12 @@ namespace Multicad.Samples
         static public void Box()
         {
             Box obj = new Box();
+            obj.PlaceObject();
+        }
+        [CommandMethod("BOffset", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void BOffset()
+        {
+            BOffset obj = new BOffset();
             obj.PlaceObject();
         }
     }

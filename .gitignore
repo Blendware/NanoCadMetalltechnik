@@ -13,11 +13,8 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
-/Metalltechnik/Properties/
-/Metalltechnik/TextInBox_Form.cs
-nApp.ini
-nApp.cfg
-/Metalltechnik/Referece code
+Metalltechnik/Properties/
+Metalltechnik/Referece code
 
 # Build results
 [Dd]ebug/
