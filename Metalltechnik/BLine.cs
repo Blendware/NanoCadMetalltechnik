@@ -1,8 +1,4 @@
-﻿//
-// Copyright (C) 2019, Pescoller Tobias.  All rights reserved.
-//
-
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
@@ -150,7 +146,7 @@ namespace Metallwork
         {
             if (!TryModify()) return;
 
-            _textPoint.TransformBy(tfm);
+            _textPoint = _textPoint.TransformBy(tfm);
             poly.TransformBy(tfm);
         }
         public override List<Point3d> OnGetGripPoints()
