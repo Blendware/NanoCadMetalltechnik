@@ -33,5 +33,11 @@ namespace Multicad.Samples
             BOffset obj = new BOffset();
             obj.PlaceObject();
         }
+        [CommandMethod("Conjunction", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void Conjunction()
+        {
+            Conjunction obj = new Conjunction();
+            obj.PlaceObject();
+        }
     }
 }

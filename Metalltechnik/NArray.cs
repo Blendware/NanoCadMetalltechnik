@@ -10,14 +10,14 @@ using Multicad.DatabaseServices.StandardObjects;
 
 namespace Metallwork
 {
-    [CustomEntity(typeof(BOffset), "6de33a6e-a784-11e9-a2a3-2a2ae2dbcce6", "BOffset", "BOffset")]
+    [CustomEntity(typeof(NArray), "6de33a6e-a784-11e9-a2a3-2a2ae2dbccf6", "NArray", "NArray")]
     [Serializable]
-    internal class BOffset : McCustomBase
+    internal class NArray : McCustomBase
     {
         private Point3d _pnt1 = new Point3d(0, 0, 0);
         private Point3d _pnt2 = new Point3d(100, 100, 0);
 
-        public BOffset()
+        public NArray()
         {
         }
         public override void OnDraw(GeometryBuilder dc)
@@ -45,7 +45,7 @@ namespace Metallwork
             blockRef2.ObjectId = idRef;
             blockRef2.TranslateBy(_pnt2.GetAsVector());
             EntityGeometry geom2 = new EntityGeometry(blockRef2);
-            dc.DrawGeometry(geom2, 3);
+            dc.DrawGeometry(geom2, 1);
         }
         public override hresult PlaceObject(PlaceFlags lInsertType)
         {
