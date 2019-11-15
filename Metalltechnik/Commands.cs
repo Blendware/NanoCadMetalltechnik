@@ -39,5 +39,11 @@ namespace Multicad.Samples
             Conjunction obj = new Conjunction();
             obj.PlaceObject();
         }
+        [CommandMethod("Conjunction_female", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void Conjunction_female()
+        {
+            Conjunction_female obj = new Conjunction_female();
+            obj.PlaceObject();
+        }
     }
 }
