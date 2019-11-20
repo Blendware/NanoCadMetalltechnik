@@ -33,6 +33,12 @@ namespace Multicad.Samples
             BOffset obj = new BOffset();
             obj.PlaceObject();
         }
+        [CommandMethod("ArrayBlock", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void ArrayBlock()
+        {
+            ArrayBlock obj = new ArrayBlock();
+            obj.PlaceObject();
+        }
         [CommandMethod("Conjunction", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
         static public void Conjunction()
         {

@@ -73,7 +73,7 @@
   <ItemGroup>
     <Compile Include="BLine.cs" />
     <Compile Include="Conjunction.cs" />
-    <Compile Include="NArray.cs" />
+    <Compile Include="ArrayBlock.cs" />
     <Compile Include="BOffset.cs" />
     <Compile Include="Box.cs" />
     <Compile Include="Referece code\TestCommands.cs" />
