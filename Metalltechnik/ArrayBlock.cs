@@ -8,6 +8,7 @@ using Multicad.CustomObjectBase;
 using System.Windows.Forms;
 using Multicad.DatabaseServices.StandardObjects;
 using System.ComponentModel;
+using HostMgd.EditorInput;
 
 namespace Metallwork
 {
@@ -43,7 +44,7 @@ namespace Metallwork
             EntityGeometry geom = new EntityGeometry(blockRef);
             dc.DrawGeometry(geom, 1);
 
-            double inbetween = Math.Round(_pnt1.DistanceTo(_pnt2) / (Count+1), 4);
+            double inbetween = Math.Round(_pnt1.DistanceTo(_pnt2) / (Count + 1), 4);
 
             for (int i = 1; i <= Count; i++)
             {
@@ -51,7 +52,7 @@ namespace Metallwork
 
                 ObjGeomRef blockRefInb = new ObjGeomRef();
                 blockRefInb.ObjectId = idRef;
-                blockRefInb.TranslateBy(new Point3d(_pnt1.X + distance, _pnt1.Y,0).Rotate(_pnt1,_pnt1.AngleTo(_pnt2)).GetAsVector());
+                blockRefInb.TranslateBy(new Point3d(_pnt1.X + distance, _pnt1.Y, 0).Rotate(_pnt1, _pnt1.AngleTo(_pnt2)).GetAsVector());
                 EntityGeometry geomInb = new EntityGeometry(blockRefInb);
                 dc.DrawGeometry(geomInb, 1);
             }
@@ -137,6 +138,28 @@ namespace Metallwork
             {
                 _pnt2 += offset;
             }
+        }
+        public override hresult OnEdit(Point3d pnt, EditFlags lFlag)
+        {
+            Editor ed = HostMgd.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
+
+            PromptIntegerOptions opts = new PromptIntegerOptions("Enter Count number: ");
+            opts.AllowNegative = false;
+            opts.AllowZero = false;
+            PromptIntegerResult pr = ed.GetInteger(opts);
+            if (PromptStatus.OK == pr.Status)
+            {
+                ed.WriteMessage("You entered: " + pr.StringResult);
+                Count = pr.Value;
+                DbEntity.Erase();
+                DbEntity.AddToCurrentDocument();
+            }
+            else
+            {
+                ed.WriteMessage("Cancel");
+            }
+
+            return hresult.s_Ok;
         }
     }
 }
