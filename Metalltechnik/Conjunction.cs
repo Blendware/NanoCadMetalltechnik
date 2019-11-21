@@ -122,10 +122,10 @@ namespace Metallwork
             dc.Color = McDbEntity.ByObject;
 
             Polyline3d poly = new Polyline3d(new List<Point3d> {_pnt1, _pnt2});
+            double gap = Thickness < 0 ? Gap * -1 : Gap;
+            poly = poly.GetTrimmedOffset(Offset-gap)[0];
 
-            poly = poly.GetTrimmedOffset(Offset-Gap)[0];
-
-            ConShape shape = new ConShape(poly.Points.FirstPoint, poly.Points.LastPoint, Thickness + Gap * 2, Length + Gap * 2, Margin - Gap, Count);
+            ConShape shape = new ConShape(poly.Points.FirstPoint, poly.Points.LastPoint, Thickness + gap * 2, Length + Gap * 2, Margin - Gap, Count);
 
             for (int i = 1; i < Count+1; i++)
             {
