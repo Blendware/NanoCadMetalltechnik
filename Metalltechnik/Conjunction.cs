@@ -47,26 +47,15 @@ namespace Metallwork
             InputJig jig = new InputJig();
             InputResult res = jig.SelectObject("Select Line");
 
+            if (res.Result != InputResult.ResultCode.Normal)
+                return hresult.e_Fail;
+
             LineSeg3d line = res.Geometry.LineSeg;
             poly = new Polyline3d(line);
 
             McObjectId id = res.ObjectId;
             DbGeometry selection = id.GetObject();
 
-            //if (selection.IsKindOf(DbPolyline.TypeID))
-            //{
-            //    MessageBox.Show("poly");
-            //}
-            //else if (selection.IsKindOf(DbLine.TypeID))
-            //{
-            //    MessageBox.Show("line");
-            //}
-            //else
-            //{
-            //    MessageBox.Show("Objecttype isn't valid");
-            //    DbEntity.Erase();
-            //    return hresult.e_Fail;
-            //}
             DbEntity.AddToCurrentDocument();
             return hresult.s_Ok;
         }
@@ -93,6 +82,7 @@ namespace Metallwork
     {
         private Point3d _pnt1 = new Point3d(0, 0, 0);
         private Point3d _pnt2 = new Point3d(100, 100, 0);
+        private bool _Inside = false;
 
         public Conjunction_female()
         {
@@ -115,6 +105,21 @@ namespace Metallwork
         [DisplayName("Offset")]
         [Category("Parameter")]
         public double Offset { get; set; } = 0;
+        [DisplayName("Inside")]
+        [Category("Parameter")]
+        public int Inside {
+            get
+            {
+                if (_Inside) return 1;
+                else return 0;
+            }
+            set
+            {
+                if (!TryModify()) return;
+                if (value > 0) _Inside = true;
+                else _Inside = false;
+            }
+        }
 
         public override void OnDraw(GeometryBuilder dc)
         {
@@ -123,19 +128,22 @@ namespace Metallwork
 
             Polyline3d poly = new Polyline3d(new List<Point3d> {_pnt1, _pnt2});
             double gap = Thickness < 0 ? Gap * -1 : Gap;
-            poly = poly.GetTrimmedOffset(Offset-gap)[0];
+            poly = _Inside ? poly.GetTrimmedOffset(Offset-gap)[0] : poly;
 
-            ConShape shape = new ConShape(poly.Points.FirstPoint, poly.Points.LastPoint, Thickness + gap * 2, Length + Gap * 2, Margin - Gap, Count);
+            ConShape shape = new ConShape(poly.Points.FirstPoint, poly.Points.LastPoint, Thickness + gap * (_Inside ? 2 : 1), Length + Gap * 2, Margin - Gap, Count);
 
             for (int i = 1; i < Count+1; i++)
             {
-                dc.DrawPolyline(shape.polyline(i));
+                dc.DrawPolyline(shape.polyline(i, _Inside));
             }
         }
         public override hresult PlaceObject(PlaceFlags lInsertType)
         {
             InputJig jig = new InputJig();
             InputResult res = jig.SelectObject("Select Line");
+
+            if (res.Result != InputResult.ResultCode.Normal)
+                return hresult.e_Fail;
 
             LineSeg3d line = res.Geometry.LineSeg;
             _pnt1 = line.StartPoint;
@@ -217,20 +225,24 @@ namespace Metallwork
             Angle = GetAngle(firstPoint, secondPoint);
             Rotate(firstPoint);
         }
-        public Polyline3d polyline(int Count)
+        public Polyline3d polyline(int Count, bool Inside)
         {
             List<Point3d> new_shape = new List<Point3d> (_shape);
-            new_shape.RemoveAt(0);
-            new_shape.RemoveAt(new_shape.Count - 1);
-
-            if(Count > 1)
-                new_shape.RemoveRange(0,Count*4-4);
-
-            if(new_shape.Count > 4)
-                new_shape.RemoveRange(4, new_shape.Count-4);
-
             Polyline3d poly = new Polyline3d(new_shape);
-            poly.SetClosed(true);
+            if (Inside)
+            {
+                new_shape.RemoveAt(0);
+                new_shape.RemoveAt(new_shape.Count - 1);
+
+                if (Count > 1)
+                    new_shape.RemoveRange(0, Count * 4 - 4);
+
+                if (new_shape.Count > 4)
+                    new_shape.RemoveRange(4, new_shape.Count - 4);
+
+                poly = new Polyline3d(new_shape);
+                poly.SetClosed(true);
+            }
 
             return poly;
         }
