@@ -161,13 +161,16 @@ namespace Metallwork
         public override void OnMoveGripPoints(List<int> indexes, Vector3d offset, bool isStretch)
         {
             if (!TryModify()) return;
-            if (indexes[0] == 0)
+            for (int i = 0; i < indexes.Count; i++)
             {
-                _textPoint += offset;
-            }
-            else if (indexes.Count == 1 && indexes[0] > 0)
-            {
-                poly.Points[indexes[0]-1] += offset;
+                if (indexes[i] == 0)
+                {
+                    _textPoint += offset;
+                }
+                else
+                {
+                    poly.Points[indexes[i] - 1] += offset;
+                }
             }
         }
     }

@@ -189,30 +189,12 @@ namespace Metallwork
         public override void OnMoveGripPoints(List<int> indexes, Vector3d offset, bool isStretch)
         {
             if (!TryModify()) return;
-            if (indexes.Count >= 2)
+            for (int i = 0; i < indexes.Count; i++)
             {
-                _pnt += offset;
-                _pnt1 += offset;
-                _pnt2 += offset;
-                _pnt3 += offset;
-            }
-            else if (indexes.Count == 1)
-            {
-                switch (indexes[0])
-                {
-                    case 0:
-                        _pnt += offset;
-                        break;
-                    case 1:
-                        _pnt1 += offset;
-                        break;
-                    case 2:
-                        _pnt2 += offset;
-                        break;
-                    case 3:
-                        _pnt3 += offset;
-                        break;
-                }
+                if (indexes[i] == 0) _pnt = _pnt + offset;
+                else if (indexes[i] == 1) _pnt1 = _pnt1 + offset;
+                else if (indexes[i] == 2) _pnt2 = _pnt2 + offset;
+                else if (indexes[i] == 3) _pnt3 = _pnt3 + offset;
             }
         }
     }
