@@ -5,12 +5,34 @@ using Multicad.Runtime;
 using Multicad.DatabaseServices;
 using Multicad.Geometry;
 using Multicad.CustomObjectBase;
-using System.Windows.Forms;
 using Multicad.DatabaseServices.StandardObjects;
 using System.ComponentModel;
 
 namespace Metallwork
 {
+    class MCETypeConverter : StringConverter
+    {
+        public override bool GetStandardValuesSupported(
+                ITypeDescriptorContext context)
+        {
+            return true;
+        }
+
+        public override bool GetStandardValuesExclusive(
+                ITypeDescriptorContext context)
+        {
+            return true;
+        }
+
+        public override StandardValuesCollection GetStandardValues(
+                ITypeDescriptorContext context)
+        {
+            String[] Values = { "True", "False" }; 
+            
+            return new StandardValuesCollection(Values);
+        }
+    }
+
     [CustomEntity(typeof(Conjunction), "6de33a4e-a784-11e9-a2a3-2a2ae2dbccf6", "Conjunction", "Conjunction")]
     [Serializable]
     internal class Conjunction : McCustomBase
@@ -107,16 +129,18 @@ namespace Metallwork
         public double Offset { get; set; } = 0;
         [DisplayName("Inside")]
         [Category("Parameter")]
-        public int Inside {
+        [TypeConverter(typeof(MCETypeConverter))]
+        public String Inside
+        {
             get
             {
-                if (_Inside) return 1;
-                else return 0;
+                if (_Inside) return "True";
+                else return "False";
             }
             set
             {
                 if (!TryModify()) return;
-                if (value > 0) _Inside = true;
+                if (value == "True") _Inside = true;
                 else _Inside = false;
             }
         }

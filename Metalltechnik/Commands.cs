@@ -1,9 +1,5 @@
-﻿using System.Drawing;
-using Multicad.Runtime;
+﻿using Multicad.Runtime;
 using Metallwork;
-using Multicad.DatabaseServices;
-using System.Windows.Forms;
-using Multicad.DatabaseServices.StandardObjects;
 
 namespace Multicad.Samples
 {

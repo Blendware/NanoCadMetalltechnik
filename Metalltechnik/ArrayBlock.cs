@@ -5,8 +5,6 @@ using Multicad.Runtime;
 using Multicad.DatabaseServices;
 using Multicad.Geometry;
 using Multicad.CustomObjectBase;
-using System.Windows.Forms;
-using Multicad.DatabaseServices.StandardObjects;
 using System.ComponentModel;
 using HostMgd.EditorInput;
 

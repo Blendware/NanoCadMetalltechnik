@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Drawing;
-using System.Windows.Forms;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Multicad;
-using Multicad.AplicationServices;
 using Multicad.Runtime;
 using Multicad.DatabaseServices;
-using Multicad.DataServices;
 using Multicad.Geometry;
 using Multicad.CustomObjectBase;
-
-using Platform = HostMgd;
-using HostMgd.EditorInput;
 
 namespace Metallwork
 {
@@ -22,6 +16,7 @@ namespace Metallwork
     {
         private List<Point3d> _points = new List<Point3d>();
         private Polyline3d poly;
+        private double _length_sum = 0;
         public BLine()
         {
         }
@@ -35,6 +30,9 @@ namespace Metallwork
         [DisplayName("K-factor")]
         [Category("Parameter")]
         public double k_factor { get; set; } = 0.5;
+        [DisplayName("Length")]
+        [Category("Parameter")]
+        public double length_sum { get { return _length_sum; } }
 
         private int V = 16;
         private Point3d _textPoint = new Point3d(0, 0, 0);
@@ -82,6 +80,7 @@ namespace Metallwork
             dc.DrawLine(polyround.Points.LastPoint, offset.Points.LastPoint);
             Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness * k_factor)[0];
             dc.TextHeight = 2.5 * DbEntity.Scale;   //Use annotation scale
+            _length_sum = middlePoly.Length;
             dc.DrawMText(_textPoint, Vector3d.XAxis, Math.Round(middlePoly.Length,1).ToString(), HorizTextAlign.Center, VertTextAlign.Center);
             dc.StrLineType = "Center";
             dc.Color = Color.Yellow;

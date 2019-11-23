@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Multicad;
-using Multicad.AplicationServices;
 using Multicad.Runtime;
 using Multicad.DatabaseServices;
-using Multicad.DataServices;
 using Multicad.Geometry;
 using Multicad.CustomObjectBase;
 
