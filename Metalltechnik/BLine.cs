@@ -44,10 +44,11 @@ namespace Metallwork
 
             if (V_true == 0)
             {
-                if (Thickness < 3) V = 16;
-                else if (Thickness == 3) V = 20;
-                else if (Thickness == 4) V = 35;
-                else if (Thickness > 4) V = 50;
+                double pos_thickness = Thickness < 0 ? Thickness * -1 : Thickness;
+                if (pos_thickness < 3) V = 16;
+                else if (pos_thickness == 3) V = 20;
+                else if (pos_thickness == 4) V = 35;
+                else if (pos_thickness > 4) V = 50;
             }
             else V = V_true;
 
