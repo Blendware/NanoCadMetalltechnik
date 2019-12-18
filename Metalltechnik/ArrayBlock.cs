@@ -7,6 +7,9 @@ using Multicad.Geometry;
 using Multicad.CustomObjectBase;
 using System.ComponentModel;
 using HostMgd.EditorInput;
+using Multicad.DatabaseServices.StandardObjects;
+using System.Windows.Forms;
+using Multicad.AplicationServices;
 
 namespace Metallwork
 {
@@ -14,9 +17,12 @@ namespace Metallwork
     [Serializable]
     internal class ArrayBlock : McCustomBase
     {
+        private List<McBlockRef> _blockRef = new List<McBlockRef>();
         private String _block_name = "ArrayBlock";
         private Point3d _pnt1 = new Point3d(0, 0, 0);
         private Point3d _pnt2 = new Point3d(100, 100, 0);
+        private McObjectId _idRef;
+        private int _count = 1;
 
         public ArrayBlock()
         {
@@ -24,23 +30,68 @@ namespace Metallwork
 
         [DisplayName("Count")]
         [Category("Parameter")]
-        public int Count { get; set; } = 1;
+        public int Count
+        {
+            get
+            {
+                return _count;
+            }
+            set
+            {
+                if (!TryModify()) return;
+
+                if (value > _count)
+                {
+                    for (int i = 0; i < value-_count; i++)
+                    {
+                        _blockRef.Add(_blockRef[0].DbEntity.Clone());
+                    }
+                }
+                else if (value < _count)
+                {
+                    for (int i = _count-value+2; i > 2; i--)
+                    {
+                        _blockRef[i].DbEntity.Erase();
+                        _blockRef.RemoveAt(i);
+                    }
+                }
+                _count = value;
+            }
+        }
+        [DisplayName("Block name")]
+        [Category("Parameter")]
+        public string Block_name
+        {
+            get
+            {
+                return _block_name;
+            }
+            set
+            {
+                if (!TryModify()) return;
+                _block_name = value;
+            }
+        }
 
         public override void OnDraw(GeometryBuilder dc)
         {
             dc.Clear();
             dc.Color = McDbEntity.ByObject;
+            _blockRef[0].DbEntity.Erase();
+            _blockRef[1].DbEntity.Erase();
 
-            McDocument doc = McDocumentsManager.GetActiveDoc();
-            if (doc == null) return;
-            McObjectId idRef = doc.GetBlock(_block_name);
+            //test.AddToCurrentDocument();
 
-            ObjGeomRef blockRef = new ObjGeomRef();
-            blockRef.ObjectId = idRef;
+            //ObjGeomRef blockRef = new ObjGeomRef();
+            //blockRef.ObjectId = _idRef;
 
-            blockRef.TranslateBy(_pnt1.GetAsVector());
-            EntityGeometry geom = new EntityGeometry(blockRef);
-            dc.DrawGeometry(geom, 1);
+            //blockRef.TranslateBy(_pnt1.GetAsVector());
+            //EntityGeometry geom = new EntityGeometry(blockRef);
+            //MessageBox.Show(geom.GSMarker.ToString());
+            //dc.DrawGeometry(geom, 1);
+            _blockRef[0].InsertPoint = _pnt1;
+            _blockRef[0].DbEntity.AddToCurrentDocument();
+
 
             double inbetween = Math.Round(_pnt1.DistanceTo(_pnt2) / (Count + 1), 4);
 
@@ -48,18 +99,25 @@ namespace Metallwork
             {
                 double distance = inbetween * i;
 
-                ObjGeomRef blockRefInb = new ObjGeomRef();
-                blockRefInb.ObjectId = idRef;
-                blockRefInb.TranslateBy(new Point3d(_pnt1.X + distance, _pnt1.Y, 0).Rotate(_pnt1, _pnt1.AngleTo(_pnt2)).GetAsVector());
-                EntityGeometry geomInb = new EntityGeometry(blockRefInb);
-                dc.DrawGeometry(geomInb, 1);
+                //ObjGeomRef blockRefInb = new ObjGeomRef();
+                //blockRefInb.ObjectId = _idRef;
+                //blockRefInb.TranslateBy(new Point3d(_pnt1.X + distance, _pnt1.Y, 0).Rotate(_pnt1, _pnt1.AngleTo(_pnt2)).GetAsVector());
+                //EntityGeometry geomInb = new EntityGeometry(blockRefInb);
+                //dc.DrawGeometry(geomInb, 1);
+                
+                _blockRef[i+1].DbEntity.Erase();
+
+                _blockRef[i+1].InsertPoint = new Point3d(_pnt1.X + distance, _pnt1.Y, 0).Rotate(_pnt1, _pnt1.AngleTo(_pnt2));
+                _blockRef[i+1].DbEntity.AddToCurrentDocument();
             }
 
-            ObjGeomRef blockRef2 = new ObjGeomRef();
-            blockRef2.ObjectId = idRef;
-            blockRef2.TranslateBy(_pnt2.GetAsVector());
-            EntityGeometry geom2 = new EntityGeometry(blockRef2);
-            dc.DrawGeometry(geom2, 1);
+            //ObjGeomRef blockRef2 = new ObjGeomRef();
+            //blockRef2.ObjectId = _idRef;
+            //blockRef2.TranslateBy(_pnt2.GetAsVector());
+            //EntityGeometry geom2 = new EntityGeometry(blockRef2);
+            //dc.DrawGeometry(geom2, 1);
+            _blockRef[1].InsertPoint = _pnt2;
+            _blockRef[1].DbEntity.AddToCurrentDocument();
         }
         public override hresult PlaceObject(PlaceFlags lInsertType)
         {
@@ -86,17 +144,24 @@ namespace Metallwork
                 item.Entity.DbEntity.Transform(Matrix3d.Displacement(res.Point.GetAsVector().MultiplyBy(-1)));
                 block.AddObject(item.Clone());
             }
+
+            _idRef = document.GetBlock(_block_name);
+
             res = jig.GetPoint("Select first point:");
             if (res.Result != InputResult.ResultCode.Normal)
                 return hresult.e_Fail;
             _pnt1 = res.Point;
-
             foreach (McObjectId obj in SelectObjects)
             {
                 McDbObject item = obj.GetObject();
                 item.Erase();
             }
 
+            McBlockRef blockref = new McBlockRef();
+            blockref.BlockName = _block_name;
+            blockref.InsertPoint = res.Point;
+            blockref.DbEntity.AddToCurrentDocument();
+            _blockRef.Add(blockref);
             DbEntity.AddToCurrentDocument();
             //Exclude this from osnap to avoid osnap to itself
             jig.ExcludeObject(ID);
@@ -107,9 +172,40 @@ namespace Metallwork
             if (res.Result != InputResult.ResultCode.Normal)
             {
                 DbEntity.Erase();
+                blockref.DbEntity.Erase();
                 return hresult.e_Fail;
             }
             _pnt2 = res.Point;
+            McBlockRef blockref2 = blockref.DbEntity.Clone();
+            blockref2.InsertPoint = res.Point;
+            blockref2.DbEntity.AddToCurrentDocument();
+            _blockRef.Add(blockref2);
+
+            Editor ed = HostMgd.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
+
+            //McBlockRef block = _idRef.GetObject();
+            //block.InsertPoint = new Point3d(0, 0, 0);
+            //block.PlaceObject();
+
+            PromptIntegerOptions opts = new PromptIntegerOptions("Enter Count number: ");
+            opts.AllowNegative = false;
+            opts.AllowZero = false;
+            PromptIntegerResult pr = ed.GetInteger(opts);
+            if (PromptStatus.OK == pr.Status)
+            {
+                ed.WriteMessage("You entered: " + pr.StringResult);
+                _count = pr.Value;
+            }
+            else
+            {
+                _count = 1;
+            }
+
+            for (int i = 0; i < Count; i++)
+            {
+                _blockRef.Add(_blockRef[0].DbEntity.Clone());
+            }
+
             return hresult.s_Ok;
         }
         public override void OnTransform(Matrix3d tfm)
@@ -140,6 +236,10 @@ namespace Metallwork
         public override hresult OnEdit(Point3d pnt, EditFlags lFlag)
         {
             Editor ed = HostMgd.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
+ 
+            //McBlockRef block = _idRef.GetObject();
+            //block.InsertPoint = new Point3d(0, 0, 0);
+            //block.PlaceObject();
 
             PromptIntegerOptions opts = new PromptIntegerOptions("Enter Count number: ");
             opts.AllowNegative = false;
@@ -159,5 +259,9 @@ namespace Metallwork
 
             return hresult.s_Ok;
         }
+    }
+
+    internal class res
+    {
     }
 }
