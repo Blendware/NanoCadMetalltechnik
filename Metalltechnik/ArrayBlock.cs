@@ -80,15 +80,6 @@ namespace Metallwork
             _blockRef[0].DbEntity.Erase();
             _blockRef[1].DbEntity.Erase();
 
-            //test.AddToCurrentDocument();
-
-            //ObjGeomRef blockRef = new ObjGeomRef();
-            //blockRef.ObjectId = _idRef;
-
-            //blockRef.TranslateBy(_pnt1.GetAsVector());
-            //EntityGeometry geom = new EntityGeometry(blockRef);
-            //MessageBox.Show(geom.GSMarker.ToString());
-            //dc.DrawGeometry(geom, 1);
             _blockRef[0].InsertPoint = _pnt1;
             _blockRef[0].DbEntity.AddToCurrentDocument();
 
@@ -99,25 +90,17 @@ namespace Metallwork
             {
                 double distance = inbetween * i;
 
-                //ObjGeomRef blockRefInb = new ObjGeomRef();
-                //blockRefInb.ObjectId = _idRef;
-                //blockRefInb.TranslateBy(new Point3d(_pnt1.X + distance, _pnt1.Y, 0).Rotate(_pnt1, _pnt1.AngleTo(_pnt2)).GetAsVector());
-                //EntityGeometry geomInb = new EntityGeometry(blockRefInb);
-                //dc.DrawGeometry(geomInb, 1);
-                
                 _blockRef[i+1].DbEntity.Erase();
 
                 _blockRef[i+1].InsertPoint = new Point3d(_pnt1.X + distance, _pnt1.Y, 0).Rotate(_pnt1, _pnt1.AngleTo(_pnt2));
                 _blockRef[i+1].DbEntity.AddToCurrentDocument();
             }
 
-            //ObjGeomRef blockRef2 = new ObjGeomRef();
-            //blockRef2.ObjectId = _idRef;
-            //blockRef2.TranslateBy(_pnt2.GetAsVector());
-            //EntityGeometry geom2 = new EntityGeometry(blockRef2);
-            //dc.DrawGeometry(geom2, 1);
             _blockRef[1].InsertPoint = _pnt2;
             _blockRef[1].DbEntity.AddToCurrentDocument();
+
+            dc.Color = System.Drawing.Color.Cyan;
+            dc.DrawLeader(_pnt2, _pnt1,Arrows.Arrow, 5);
         }
         public override hresult PlaceObject(PlaceFlags lInsertType)
         {
@@ -162,11 +145,17 @@ namespace Metallwork
             blockref.InsertPoint = res.Point;
             blockref.DbEntity.AddToCurrentDocument();
             _blockRef.Add(blockref);
+            _blockRef.Add(_blockRef[0].DbEntity.Clone());
+            _blockRef.Add(_blockRef[0].DbEntity.Clone());
             DbEntity.AddToCurrentDocument();
             //Exclude this from osnap to avoid osnap to itself
             jig.ExcludeObject(ID);
             //Monitor mouse move
-            jig.MouseMove = (s, a) => { TryModify(); _pnt2 = a.Point; DbEntity.Update(); };
+            jig.MouseMove = (s, a) => {
+                TryModify();
+                _pnt2 = a.Point;
+                DbEntity.Update();
+            };
 
             res = jig.GetPoint("Select second point:", res.Point);
             if (res.Result != InputResult.ResultCode.Normal)
@@ -176,32 +165,35 @@ namespace Metallwork
                 return hresult.e_Fail;
             }
             _pnt2 = res.Point;
-            McBlockRef blockref2 = blockref.DbEntity.Clone();
-            blockref2.InsertPoint = res.Point;
-            blockref2.DbEntity.AddToCurrentDocument();
-            _blockRef.Add(blockref2);
 
             Editor ed = HostMgd.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
 
-            //McBlockRef block = _idRef.GetObject();
-            //block.InsertPoint = new Point3d(0, 0, 0);
-            //block.PlaceObject();
-
             PromptIntegerOptions opts = new PromptIntegerOptions("Enter Count number: ");
+
             opts.AllowNegative = false;
             opts.AllowZero = false;
+            opts.DefaultValue = 1;
             PromptIntegerResult pr = ed.GetInteger(opts);
+
             if (PromptStatus.OK == pr.Status)
             {
                 ed.WriteMessage("You entered: " + pr.StringResult);
                 _count = pr.Value;
+
+                _blockRef.Add(blockref.DbEntity.Clone());
+                _blockRef[1].InsertPoint = res.Point;
+                _blockRef[1].DbEntity.AddToCurrentDocument();
             }
             else
             {
                 _count = 1;
+
+                _blockRef.Add(blockref.DbEntity.Clone());
+                _blockRef[1].InsertPoint = res.Point;
+                _blockRef[1].DbEntity.AddToCurrentDocument();
             }
 
-            for (int i = 0; i < Count; i++)
+            for (int i = 1; i < Count; i++)
             {
                 _blockRef.Add(_blockRef[0].DbEntity.Clone());
             }
@@ -216,7 +208,7 @@ namespace Metallwork
         }
         public override List<Point3d> OnGetGripPoints()
         {
-            List<Multicad.Geometry.Point3d> arr = new List<Point3d>();
+            List<Point3d> arr = new List<Point3d>();
             arr.Add(_pnt1);
             arr.Add(_pnt2);
             return arr;
@@ -224,22 +216,21 @@ namespace Metallwork
         public override void OnMoveGripPoints(List<int> indexes, Vector3d offset, bool isStretch)
         {
             if (!TryModify()) return;
-            if (indexes[0] == 0)
+            for (int i = 0; i < indexes.Count; i++)
             {
-                _pnt1 += offset;
-            }
-            if (indexes[0] == 1)
-            {
-                _pnt2 += offset;
+                if (indexes[i] == 0)
+                {
+                    _pnt1 += offset;
+                }
+                if (indexes[i] == 1)
+                {
+                    _pnt2 += offset;
+                }
             }
         }
         public override hresult OnEdit(Point3d pnt, EditFlags lFlag)
         {
             Editor ed = HostMgd.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
- 
-            //McBlockRef block = _idRef.GetObject();
-            //block.InsertPoint = new Point3d(0, 0, 0);
-            //block.PlaceObject();
 
             PromptIntegerOptions opts = new PromptIntegerOptions("Enter Count number: ");
             opts.AllowNegative = false;

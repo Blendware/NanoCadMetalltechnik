@@ -79,7 +79,7 @@ namespace Metallwork
             dc.DrawPolyline(offset);
             dc.DrawLine(polyround.Points.FirstPoint, offset.Points.FirstPoint);
             dc.DrawLine(polyround.Points.LastPoint, offset.Points.LastPoint);
-            Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness * k_factor)[0];
+            Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness * (Thickness < 0 ? 1-k_factor : k_factor))[0];
             dc.TextHeight = 2.5 * DbEntity.Scale;   //Use annotation scale
             _length_sum = middlePoly.Length;
             dc.DrawMText(_textPoint, Vector3d.XAxis, Math.Round(middlePoly.Length,1).ToString(), HorizTextAlign.Center, VertTextAlign.Center);
