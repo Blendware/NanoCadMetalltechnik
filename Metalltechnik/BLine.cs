@@ -104,7 +104,7 @@ namespace Metallwork
             dc.DrawLine(polyround.Points.LastPoint, offset.Points.LastPoint);
             Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness * (Thickness < 0 ? 1-k_factor : k_factor))[0];
             dc.TextHeight = 2.5 * DbEntity.Scale;   //Use annotation scale
-            dc.DrawMText(_textPoint, Vector3d.XAxis, Math.Round(middlePoly.Length,1).ToString(), HorizTextAlign.Center, VertTextAlign.Center);
+            dc.DrawMText(_textPoint, Vector3d.XAxis, Math.Round(_length_sum, 1).ToString(), HorizTextAlign.Center, VertTextAlign.Center);
             dc.StrLineType = "Center";
             dc.Color = Color.Yellow;
             dc.LinetypeScale = DbEntity.LinetypeScale*0.3;
