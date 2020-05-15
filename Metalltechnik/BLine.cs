@@ -53,15 +53,29 @@ namespace Metallwork
             else V = V_true;
 
             Polyline3d polyround = new Polyline3d(poly);
+            _length_sum = 0;
 
-            for (int i = 2; i < polyround.Vertices.Count; i++)
+            //HostMgd.EditorInput.Editor ed = HostMgd.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
+
+            for (int i = 2; i < polyround.Vertices.Count; i+=2)
             {
                 double angle1 = Math.Atan2(polyround.Vertices[i - 2].Point.X - polyround.Vertices[i - 1].Point.X, polyround.Vertices[i - 2].Point.Y - polyround.Vertices[i - 1].Point.Y);
                 double angle2 = Math.Atan2(polyround.Vertices[i - 1].Point.X - polyround.Vertices[i].Point.X, polyround.Vertices[i - 1].Point.Y - polyround.Vertices[i].Point.Y);
 
-                //if (angle1 < 0) angle1 *= -1;
-                //if (angle2 < 0) angle2 *= -1;
                 double anglesum = Math.Atan((angle2 - angle1) / (1 + angle2 * angle1));//angle1 + angle2
+
+                double a = polyround.Vertices[i - 2].Point.DistanceTo(polyround.Vertices[i - 1].Point);
+                double b = polyround.Vertices[i - 1].Point.DistanceTo(polyround.Vertices[i].Point);
+                double c = polyround.Vertices[i - 2].Point.DistanceTo(polyround.Vertices[i].Point);
+
+                double angle = Math.Acos((Math.Pow(a, 2) + Math.Pow(b, 2) - Math.Pow(c, 2)) / (2 * a * b));
+                angle = angle * 180 / Math.PI;
+
+                double r = V * 0.16;
+                double pos_thickness = Thickness < 0 ? Thickness * -1 : Thickness;
+                double BA = Math.PI / 180 * angle * (r + k_factor * pos_thickness);
+
+                _length_sum += BA;
 
                 double radius;
                 if (anglesum < 0)
@@ -73,6 +87,15 @@ namespace Metallwork
 
                 polyround.Vertices.MakeFilletAtVertex(i - 1, radius);
             }
+
+            for (int i = 0; i < polyround.Vertices.Count; i += 2)
+            {
+                LineSeg3d line = polyround.Segments[i] as LineSeg3d;
+                _length_sum += line.Length;
+            }
+
+            _length_sum = Math.Round(_length_sum, 4);
+
             Polyline3d offset = polyround.GetTrimmedOffset(-Thickness)[0];
 
             dc.DrawPolyline(polyround);
@@ -81,7 +104,6 @@ namespace Metallwork
             dc.DrawLine(polyround.Points.LastPoint, offset.Points.LastPoint);
             Polyline3d middlePoly = polyround.GetTrimmedOffset(-Thickness * (Thickness < 0 ? 1-k_factor : k_factor))[0];
             dc.TextHeight = 2.5 * DbEntity.Scale;   //Use annotation scale
-            _length_sum = middlePoly.Length;
             dc.DrawMText(_textPoint, Vector3d.XAxis, Math.Round(middlePoly.Length,1).ToString(), HorizTextAlign.Center, VertTextAlign.Center);
             dc.StrLineType = "Center";
             dc.Color = Color.Yellow;
