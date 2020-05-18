@@ -59,10 +59,10 @@ namespace Metallwork
 
             for (int i = 2; i < polyround.Vertices.Count; i+=2)
             {
-                double angle1 = Math.Atan2(polyround.Vertices[i - 2].Point.X - polyround.Vertices[i - 1].Point.X, polyround.Vertices[i - 2].Point.Y - polyround.Vertices[i - 1].Point.Y);
-                double angle2 = Math.Atan2(polyround.Vertices[i - 1].Point.X - polyround.Vertices[i].Point.X, polyround.Vertices[i - 1].Point.Y - polyround.Vertices[i].Point.Y);
+                //double angle1 = Math.Atan2(polyround.Vertices[i - 2].Point.X - polyround.Vertices[i - 1].Point.X, polyround.Vertices[i - 2].Point.Y - polyround.Vertices[i - 1].Point.Y);
+                //double angle2 = Math.Atan2(polyround.Vertices[i - 1].Point.X - polyround.Vertices[i].Point.X, polyround.Vertices[i - 1].Point.Y - polyround.Vertices[i].Point.Y);
 
-                double anglesum = Math.Atan((angle2 - angle1) / (1 + angle2 * angle1));//angle1 + angle2
+                double anglesum = (polyround.Vertices[i - 1].Point.X - polyround.Vertices[i].Point.X) * (polyround.Vertices[i - 2].Point.Y - polyround.Vertices[i].Point.Y) - (polyround.Vertices[i - 1].Point.Y - polyround.Vertices[i].Point.Y) * (polyround.Vertices[i - 2].Point.X - polyround.Vertices[i].Point.X);//Math.Atan((angle2 - angle1) / (1 + angle2 * angle1));//angle1 + angle2
 
                 double a = polyround.Vertices[i - 2].Point.DistanceTo(polyround.Vertices[i - 1].Point);
                 double b = polyround.Vertices[i - 1].Point.DistanceTo(polyround.Vertices[i].Point);
@@ -73,7 +73,7 @@ namespace Metallwork
 
                 double r = V * 0.16;
                 double pos_thickness = Thickness < 0 ? Thickness * -1 : Thickness;
-                double BA = Math.PI / 180 * angle * (r + k_factor * pos_thickness);
+                double BA = Math.PI / 180 * (180-angle) * (r + k_factor * pos_thickness);
 
                 _length_sum += BA;
 
