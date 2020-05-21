@@ -47,5 +47,11 @@ namespace Multicad.Samples
             Conjunction_female obj = new Conjunction_female();
             obj.PlaceObject();
         }
+        [CommandMethod("Table_feet", CommandFlags.NoCheck | CommandFlags.NoPrefix)]
+        static public void Table_feet()
+        {
+            Table_feet obj = new Table_feet();
+            obj.PlaceObject();
+        }
     }
 }

@@ -81,6 +81,7 @@
     <Compile Include="Referece code\HelloWorld.cs" />
     <Compile Include="BBox.cs" />
     <Compile Include="Referece code\TextInBox.cs" />
+    <Compile Include="Table_feet.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
