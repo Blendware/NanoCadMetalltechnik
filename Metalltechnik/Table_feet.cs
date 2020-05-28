@@ -37,7 +37,9 @@ namespace Metallwork
         {
             dc.Clear();
             dc.Color = McDbEntity.ByObject;//color will be taken from object properties and object will be redrawn after color change
-            
+
+            //HostMgd.EditorInput.Editor ed = HostMgd.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
+
             //Outside rechtangle
             Polyline3d poly = new Polyline3d(new List<Point3d> {_pnt1, _pnt3, new Point3d(_pnt2.X,_pnt3.Y,0), _pnt2});
             poly.SetClosed(true);
@@ -48,11 +50,10 @@ namespace Metallwork
             dc.DrawPolyline(poly);
 
             //Fl 100x15
-            Polyline3d flat_bar = RotatedRechtangle(100, 15, new Point3d(_pnt1.X+95.7, _pnt1.Y + (_pnt3.Y - _pnt1.Y)/2, 0), Angle1);
+            Polyline3d flat_bar1 = RotatedRechtangle(100, 15, new Point3d(_pnt1.X+95.7, _pnt1.Y + (_pnt3.Y - _pnt1.Y)/2, 0), Angle1);
             Polyline3d flat_bar2 = RotatedRechtangle(100, 15, new Point3d(_pnt2.X - 95.7, _pnt1.Y + (_pnt3.Y - _pnt1.Y) / 2, 0), -Angle1);
-            dc.DrawPolyline(flat_bar);
+            dc.DrawPolyline(flat_bar1);
             dc.DrawPolyline(flat_bar2);
-
 
             //Side view
             Point3d pnt4_base = new Point3d(_pnt3.X, _pnt3.Y + 200, 0);
@@ -63,6 +64,31 @@ namespace Metallwork
             //dc.DrawLine(top_position, new Point3d(top_position.X + 100, top_position.Y, 0));
             double rech_offset = (_pnt1.DistanceTo(_pnt3)-100)/2;
             dc.DrawPolyline(new Point3d[] { new Point3d(top_position.X - rech_offset, top_position.Y, 0), new Point3d(top_position.X - rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + 100 + rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + 100 + rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + 100 + rech_offset, top_position.Y, 0), new Point3d(top_position.X - rech_offset, top_position.Y, 0) });
+
+            //Fl 100x15 bottom view
+            double bottom_view_point_offset = BottomViewPointOffset1();
+            Point3d rech_pnt1 = new Point3d(flat_bar1.Points[0].X - BottomViewPointOffset2(flat_bar1), flat_bar1.Points[0].Y, 0);
+            Point3d rech_pnt2 = new Point3d(flat_bar2.Points[1].X + BottomViewPointOffset2(flat_bar1), flat_bar1.Points[0].Y, 0);
+            Point3d bottom_view_point1 = new Point3d(rech_pnt1.X - bottom_view_point_offset, rech_pnt1.Y - (top_position.X - _pnt1.X), 0);
+            Point3d bottom_view_point2 = new Point3d(rech_pnt2.X + bottom_view_point_offset, bottom_view_point1.Y, 0);
+            dc.DrawLine(bottom_view_point1, bottom_view_point2);
+            dc.DrawLine(bottom_view_point1, flat_bar1.Points[1]);
+            dc.DrawLine(bottom_view_point2, flat_bar2.Points[0]);
+
+            //Fl 100x15 bottom
+            Polyline3d bottom_flat_bar1 = new Polyline3d(flat_bar1);
+            Polyline3d bottom_flat_bar2 = new Polyline3d(flat_bar2);
+            bottom_flat_bar1.TranslateBy(new Vector3d(-bottom_view_point_offset, _pnt1.X-top_position.X, 0));
+            bottom_flat_bar2.TranslateBy(new Vector3d(bottom_view_point_offset, _pnt1.X - top_position.X, 0));
+            dc.DrawPolyline(bottom_flat_bar1);
+            dc.DrawPolyline(bottom_flat_bar2);
+
+            //Adding remaining Lines
+            dc.DrawLine(bottom_flat_bar1.Points[2], bottom_flat_bar2.Points[3]);
+            dc.DrawLine(bottom_flat_bar1.Points[3], flat_bar1.Points[0]);
+            dc.DrawLine(flat_bar2.Points[1], bottom_flat_bar2.Points[2]);
+            double side_view_line_offset = BottomViewPointOffset2(flat_bar1) - (flat_bar1.Points[0].X - flat_bar1.Points[1].X);
+            dc.DrawLine(new Point3d(pnt4_base.X + side_view_line_offset, pnt4_base.Y + 15, 0), new Point3d(top_position.X + side_view_line_offset, top_position.Y, 0));
 
             //Holes
             dc.DrawCircle(new Point3d(_pnt1.X + 35, _pnt1.Y + 25, 0), 2.75);
@@ -93,11 +119,27 @@ namespace Metallwork
         }
         private Point3d TopPosition(double angle)
         {
-            angle = angle * Math.PI / 180;
+            double rad = angle * Math.PI / 180;
             double height = _pnt4.DistanceTo(new Point3d(_pnt3.X, _pnt3.Y + 200+15, 0))-6;
-            double width = height / Math.Tan(angle);
+            double width = height / Math.Tan(rad);
 
             return new Point3d(_pnt4.X+width, _pnt4.Y-6, 0);
+        }
+        private double BottomViewPointOffset1()
+        {
+            double rad = Angle1 * Math.PI / 180;
+            double distance = TopPosition(Angle2).X - _pnt1.X;
+            double offset = distance * Math.Tan(rad);
+
+            return offset;
+        }
+        private double BottomViewPointOffset2(Polyline3d poly)
+        {
+            double rad = Angle1 * Math.PI / 180;
+            double distance = poly.Points[1].DistanceTo(poly.Points[0]);
+            double offset = distance / Math.Cos(rad);
+
+            return offset;
         }
 
         public static Point3d PolarPoint(Point3d point1, Point3d point2, Point3d point3, double radius)
@@ -126,7 +168,7 @@ namespace Metallwork
                 TryModify();
                 _pnt2 = _pnt2 = new Point3d(a.Point.X, _pnt1.Y, 0);
                 _pnt3 = new Point3d(_pnt1.X, _pnt1.Y + 200, 0);
-                _pnt4 = new Point3d(_pnt1.X, _pnt1.Y + 1000, 0);
+                _pnt4 = new Point3d(_pnt1.X, _pnt1.Y + 1100, 0);
                 DbEntity.Update();
             };
 
@@ -138,7 +180,7 @@ namespace Metallwork
             }
             _pnt2 = new Point3d(res.Point.X,_pnt1.Y,0);
             _pnt3 = new Point3d(_pnt1.X, _pnt1.Y + 200, 0);
-            _pnt4 = new Point3d(_pnt1.X, _pnt1.Y + 1000, 0);
+            _pnt4 = new Point3d(_pnt1.X, _pnt1.Y + 1100, 0);
             return hresult.s_Ok;
         }
         public override void OnTransform(Matrix3d tfm)
