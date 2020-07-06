@@ -28,10 +28,16 @@ namespace Metallwork
         public int Count { get; set; } = 5;
         [DisplayName("Angle1")]
         [Category("Parameter")]
-        public int Angle1 { get; set; } = 25;
+        public double Angle1 { get; set; } = 25;
         [DisplayName("Angle2")]
         [Category("Parameter")]
-        public int Angle2 { get; set; } = 75;
+        public double Angle2 { get; set; } = 75;
+        [DisplayName("FL Length")]
+        [Category("Parameter")]
+        public double Fl_width { get; set; } = 100;
+        [DisplayName("FL Thickness")]
+        [Category("Parameter")]
+        public double Fl_tickness { get; set; } = 15;
 
         public override void OnDraw(GeometryBuilder dc)
         {
@@ -50,20 +56,20 @@ namespace Metallwork
             dc.DrawPolyline(poly);
 
             //Fl 100x15
-            Polyline3d flat_bar1 = RotatedRechtangle(100, 15, new Point3d(_pnt1.X+95.7, _pnt1.Y + (_pnt3.Y - _pnt1.Y)/2, 0), Angle1);
-            Polyline3d flat_bar2 = RotatedRechtangle(100, 15, new Point3d(_pnt2.X - 95.7, _pnt1.Y + (_pnt3.Y - _pnt1.Y) / 2, 0), -Angle1);
+            Polyline3d flat_bar1 = RotatedRechtangle(Fl_width, Fl_tickness, new Point3d(_pnt1.X+95.7, _pnt1.Y + (_pnt3.Y - _pnt1.Y)/2, 0), Angle1);
+            Polyline3d flat_bar2 = RotatedRechtangle(Fl_width, Fl_tickness, new Point3d(_pnt2.X - 95.7, _pnt1.Y + (_pnt3.Y - _pnt1.Y) / 2, 0), -Angle1);
             dc.DrawPolyline(flat_bar1);
             dc.DrawPolyline(flat_bar2);
 
             //Side view
             Point3d pnt4_base = new Point3d(_pnt3.X, _pnt3.Y + 200, 0);
-            dc.DrawPolyline(new Point3d[] { pnt4_base, new Point3d(pnt4_base.X, pnt4_base.Y + 15, 0), new Point3d(pnt4_base.X+100, pnt4_base.Y + 15, 0), new Point3d(pnt4_base.X+100, pnt4_base.Y + 15, 0), new Point3d(pnt4_base.X+100, pnt4_base.Y, 0), pnt4_base });
+            dc.DrawPolyline(new Point3d[] { pnt4_base, new Point3d(pnt4_base.X, pnt4_base.Y + Fl_tickness, 0), new Point3d(pnt4_base.X+Fl_width, pnt4_base.Y + Fl_tickness, 0), new Point3d(pnt4_base.X+Fl_width, pnt4_base.Y + Fl_tickness, 0), new Point3d(pnt4_base.X+Fl_width, pnt4_base.Y, 0), pnt4_base });
             Point3d top_position = TopPosition(Angle2);
-            dc.DrawLine(new Point3d(pnt4_base.X, pnt4_base.Y + 15, 0), top_position);
-            dc.DrawLine(new Point3d(pnt4_base.X+100, pnt4_base.Y + 15, 0), new Point3d(top_position.X+100, top_position.Y,0));
+            dc.DrawLine(new Point3d(pnt4_base.X, pnt4_base.Y + Fl_tickness, 0), top_position);
+            dc.DrawLine(new Point3d(pnt4_base.X+Fl_width, pnt4_base.Y + Fl_tickness, 0), new Point3d(top_position.X+Fl_width, top_position.Y,0));
             //dc.DrawLine(top_position, new Point3d(top_position.X + 100, top_position.Y, 0));
-            double rech_offset = (_pnt1.DistanceTo(_pnt3)-100)/2;
-            dc.DrawPolyline(new Point3d[] { new Point3d(top_position.X - rech_offset, top_position.Y, 0), new Point3d(top_position.X - rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + 100 + rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + 100 + rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + 100 + rech_offset, top_position.Y, 0), new Point3d(top_position.X - rech_offset, top_position.Y, 0) });
+            double rech_offset = (_pnt1.DistanceTo(_pnt3)-Fl_width)/2;
+            dc.DrawPolyline(new Point3d[] { new Point3d(top_position.X - rech_offset, top_position.Y, 0), new Point3d(top_position.X - rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + Fl_width + rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + Fl_width + rech_offset, top_position.Y + 6, 0), new Point3d(top_position.X + Fl_width + rech_offset, top_position.Y, 0), new Point3d(top_position.X - rech_offset, top_position.Y, 0) });
 
             //Fl 100x15 bottom view
             double bottom_view_point_offset = BottomViewPointOffset1();
@@ -88,7 +94,7 @@ namespace Metallwork
             dc.DrawLine(bottom_flat_bar1.Points[3], flat_bar1.Points[0]);
             dc.DrawLine(flat_bar2.Points[1], bottom_flat_bar2.Points[2]);
             double side_view_line_offset = BottomViewPointOffset2(flat_bar1) - (flat_bar1.Points[0].X - flat_bar1.Points[1].X);
-            dc.DrawLine(new Point3d(pnt4_base.X + side_view_line_offset, pnt4_base.Y + 15, 0), new Point3d(top_position.X + side_view_line_offset, top_position.Y, 0));
+            dc.DrawLine(new Point3d(pnt4_base.X + side_view_line_offset, pnt4_base.Y + Fl_tickness, 0), new Point3d(top_position.X + side_view_line_offset, top_position.Y, 0));
 
             //Holes
             dc.DrawCircle(new Point3d(_pnt1.X + 35, _pnt1.Y + 25, 0), 2.75);
@@ -120,7 +126,7 @@ namespace Metallwork
         private Point3d TopPosition(double angle)
         {
             double rad = angle * Math.PI / 180;
-            double height = _pnt4.DistanceTo(new Point3d(_pnt3.X, _pnt3.Y + 200+15, 0))-6;
+            double height = _pnt4.DistanceTo(new Point3d(_pnt3.X, _pnt3.Y + 200 + Fl_tickness, 0))-6;
             double width = height / Math.Tan(rad);
 
             return new Point3d(_pnt4.X+width, _pnt4.Y-6, 0);
