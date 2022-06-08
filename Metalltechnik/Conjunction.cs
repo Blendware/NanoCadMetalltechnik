@@ -38,8 +38,6 @@ namespace Metallwork
     internal class Conjunction : McCustomBase
     {
         private Polyline3d poly = new Polyline3d();
-        private Point3d _pnt1 = new Point3d(0, 0, 0);
-        private Point3d _pnt2 = new Point3d(100, 100, 0);
 
         public Conjunction()
         {
@@ -56,13 +54,34 @@ namespace Metallwork
         [DisplayName("Count")]
         [Category("Parameter")]
         public int Count { get; set; } = 2;
+        [DisplayName("Radius")]
+        [Category("Parameter")]
+        public double Radius { get; set; } = 0.5;
+        [DisplayName("Taper")]
+        [Category("Parameter")]
+        public double Taper { get; set; } = 0.2;
 
         public override void OnDraw(GeometryBuilder dc)
         {
             dc.Clear();
             dc.Color = McDbEntity.ByObject;
+            ConShape shape = new ConShape(poly.Points.FirstPoint, poly.Points.LastPoint, Thickness, Length, Margin, Count, Taper);
+            Polyline3d polyround = new Polyline3d(shape.polyline(1,false));
 
-            dc.DrawPolyline(new ConShape(poly.Points.FirstPoint, poly.Points.LastPoint, Thickness, Length, Margin, Count).Shape);
+            if (Radius != 0)
+            {
+                for (int j = polyround.Vertices.Count-1; j > 0; j-=1)
+                {
+                    double radius;
+                    if (j%4 == 0 || j%4 == 1)
+                        radius = 0.5;
+                    else
+                        radius = Radius;
+
+                    polyround.Vertices.MakeFilletAtVertex(j, radius);
+                }
+            }
+            dc.DrawPolyline(polyround);
         }
         public override hresult PlaceObject(PlaceFlags lInsertType)
         {
@@ -89,13 +108,20 @@ namespace Metallwork
         }
         public override List<Point3d> OnGetGripPoints()
         {
-            List<Multicad.Geometry.Point3d> arr = new List<Point3d>();
+            List<Point3d> arr = new List<Point3d>();
+            for (int i = 0; i < poly.Vertices.Count; i++)
+            {
+                arr.Add(poly.Points[i]);
+            }
             return arr;
         }
         public override void OnMoveGripPoints(List<int> indexes, Vector3d offset, bool isStretch)
         {
             if (!TryModify()) return;
-            
+            for (int i = 0; i < indexes.Count; i++)
+            {
+                poly.Points[indexes[i]] += offset;
+            }
         }
     }
     [CustomEntity(typeof(Conjunction_female), "6de33a4e-a784-11e9-a2a3-2a2ae2dbccf8", "Conjunction_female", "Conjunction_female")]
@@ -127,6 +153,9 @@ namespace Metallwork
         [DisplayName("Offset")]
         [Category("Parameter")]
         public double Offset { get; set; } = 0;
+        [DisplayName("Radius")]
+        [Category("Parameter")]
+        public double Radius { get; set; } = 0.5;
         [DisplayName("Inside")]
         [Category("Parameter")]
         [TypeConverter(typeof(MCETypeConverter))]
@@ -156,9 +185,35 @@ namespace Metallwork
 
             ConShape shape = new ConShape(poly.Points.FirstPoint, poly.Points.LastPoint, Thickness + gap * (_Inside ? 2 : 1), Length + Gap * 2, Margin - Gap, Count);
 
-            for (int i = 1; i < Count+1; i++)
+            if (_Inside)
             {
-                dc.DrawPolyline(shape.polyline(i, _Inside));
+                for (int i = 1; i < Count+1; i++)
+                {
+                    Polyline3d polyround = new Polyline3d(shape.polyline(i, _Inside));
+                    for (int j = 0; j < polyround.Vertices.Count+1; j+=1)
+                    {
+                        polyround.Vertices.MakeFilletAtVertex(j - 1, Radius);
+                    }
+                    dc.DrawPolyline(polyround);
+                }
+            }
+            else
+            {
+                Polyline3d polyround = new Polyline3d(shape.polyline(1, _Inside));
+                if (Radius != 0)
+                {
+                    for (int j = polyround.Vertices.Count-1; j > 0; j-=1)
+                    {
+                        double radius;
+                        if (j%4 == 0 || j%4 == 1)
+                            radius = 0.5;
+                        else
+                            radius = Radius;
+
+                        polyround.Vertices.MakeFilletAtVertex(j, radius);
+                    }
+                }
+                dc.DrawPolyline(polyround);
             }
         }
         public override hresult PlaceObject(PlaceFlags lInsertType)
@@ -200,50 +255,57 @@ namespace Metallwork
             _pnt1 = _pnt1.TransformBy(tfm);
             _pnt2 = _pnt2.TransformBy(tfm);
         }
-        //public override List<Point3d> OnGetGripPoints()
-        //{
-        //    List<Multicad.Geometry.Point3d> arr = new List<Point3d>();
-        //    return arr;
-        //}
-        //public override void OnMoveGripPoints(List<int> indexes, Vector3d offset, bool isStretch)
-        //{
-        //    if (!TryModify()) return;
+        public override List<Point3d> OnGetGripPoints()
+        {
+            List<Point3d> arr = new List<Point3d>();
+            arr.Add(_pnt1);
+            arr.Add(_pnt2);
+            return arr;
+        }
+        public override void OnMoveGripPoints(List<int> indexes, Vector3d offset, bool isStretch)
+        {
+            if (!TryModify()) return;
 
-        //}
+            for (int i = 0; i < indexes.Count; i++)
+            {
+                if (indexes[i] == 0) _pnt1 += offset;
+                else if (indexes[i] == 1) _pnt2 += offset;
+            }
+        }
     }
     class ConShape
     {
         private List<Point3d> _shape;//8ec5m3
         public Point3d[] Shape { get { return _shape.ToArray(); } }
         public double Angle { get; }
-        public ConShape(Point3d firstPoint, Point3d secondPoint, double Thickness, double Length, double Margin, int Count)
+        public ConShape(Point3d firstPoint, Point3d secondPoint, double Thickness, double Length, double Margin, int Count, double Taper = 0)
         {
             double endPoint = firstPoint.X + firstPoint.DistanceTo(secondPoint);
-            double inbetween = Math.Round((firstPoint.DistanceTo(secondPoint)-Margin*2-Length)/(Count-1),4);
+            double inbetween = Math.Round((firstPoint.DistanceTo(secondPoint)-Margin*2-Length)/(Count-1),4);      
             
             _shape = new List<Point3d> {
-                firstPoint,
-                new Point3d(firstPoint.X+Margin, firstPoint.Y, 0),
-                new Point3d(firstPoint.X+Margin, firstPoint.Y + Thickness, 0),
-                new Point3d(firstPoint.X+Margin+Length, firstPoint.Y + Thickness, 0),
-                new Point3d(firstPoint.X+Margin+Length, firstPoint.Y, 0)
-             };
+            firstPoint,
+            new Point3d(firstPoint.X+Margin + Taper, firstPoint.Y, 0),
+            new Point3d(firstPoint.X+Margin, firstPoint.Y + Thickness, 0),
+            new Point3d(firstPoint.X+Margin+Length, firstPoint.Y + Thickness, 0),
+            new Point3d(firstPoint.X+Margin+Length - Taper, firstPoint.Y, 0)
+            };
 
             if (Count > 1)
             {
                 for (int i = 1; i < Count-1; i++)
                 {
                     double distance = inbetween*i;
-                    _shape.Add(new Point3d(Margin + firstPoint.X + distance, firstPoint.Y, 0));
+                    _shape.Add(new Point3d(Margin + firstPoint.X + distance + Taper, firstPoint.Y, 0));
                     _shape.Add(new Point3d(Margin + firstPoint.X + distance, firstPoint.Y + Thickness, 0));
                     _shape.Add(new Point3d(Margin + firstPoint.X + distance + Length, firstPoint.Y + Thickness, 0));
-                    _shape.Add(new Point3d(Margin + firstPoint.X + distance + Length, firstPoint.Y, 0));
+                    _shape.Add(new Point3d(Margin + firstPoint.X + distance + Length - Taper, firstPoint.Y, 0));
                     //distance += inbetween;
                 }
-                _shape.Add(new Point3d(endPoint - Margin - Length, firstPoint.Y, 0));
+                _shape.Add(new Point3d(endPoint - Margin - Length + Taper, firstPoint.Y, 0));
                 _shape.Add(new Point3d(endPoint - Margin - Length, firstPoint.Y + Thickness, 0));
                 _shape.Add(new Point3d(endPoint - Margin, firstPoint.Y + Thickness, 0));
-                _shape.Add(new Point3d(endPoint - Margin, firstPoint.Y, 0));
+                _shape.Add(new Point3d(endPoint - Margin - Taper, firstPoint.Y, 0));
             }
             _shape.Add(new Point3d(endPoint, firstPoint.Y, 0));
             Angle = GetAngle(firstPoint, secondPoint);
